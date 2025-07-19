@@ -86,7 +86,7 @@ const SocialIcons = () => {
         </span>
         <span>
           <a
-            href="https://www.instagram.com"
+            href="https://www.instagram.com/_ansshhh_007/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -97,7 +97,7 @@ const SocialIcons = () => {
 
       <a
         className="resume-button"
-        href="/public/resume.pdf"
+        href="/resume.pdf"
         target="_blank"
         rel="noopener noreferrer"
       >
