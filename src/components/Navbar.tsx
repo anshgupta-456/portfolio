@@ -7,14 +7,17 @@ import { ScrollSmoother } from "gsap/all";
 import { gsap } from "gsap";
 import HoverLinks from "./HoverLinks";
 import "./styles/Navbar.css";
+import { useBreakpoint } from "../hooks/useResponsive";
 
 gsap.registerPlugin(ScrollSmoother, ScrollTrigger);
 export let smoother: ScrollSmoother;
 
 const Navbar = () => {
+  const breakpoint = useBreakpoint();
+
   useEffect(() => {
     // Initialize ScrollSmoother on desktop only
-    if (window.innerWidth > 1024) {
+    if (breakpoint.isDesktop) {
       smoother = ScrollSmoother.create({
         wrapper: "#smooth-wrapper",
         content: "#smooth-content",
@@ -43,7 +46,7 @@ const Navbar = () => {
         ScrollSmoother.refresh(true);
       });
     }
-  }, []);
+  }, [breakpoint.isDesktop]);
 
   return (
     <>

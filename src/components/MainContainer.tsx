@@ -10,23 +10,19 @@ import SocialIcons from "./SocialIcons";
 import WhatIDo from "./WhatIDo";
 import Work from "./Work";
 import setSplitText from "./utils/splitText";
+import { useBreakpoint, useDeviceType, useDebouncedResize } from "../hooks/useResponsive";
 
 const TechStack = lazy(() => import("./TechStack"));
 
 const MainContainer = ({ children }: PropsWithChildren) => {
-  const [isDesktopView, setIsDesktopView] = useState<boolean>(
-    window.innerWidth > 1024
-  );
+  const deviceType = useDeviceType();
+  const breakpoint = useBreakpoint();
+  const isDesktopView = breakpoint.isDesktop;
 
-  useEffect(() => {
-    const resizeHandler = () => {
-      setSplitText();
-      setIsDesktopView(window.innerWidth > 1024);
-    };
-    resizeHandler(); // run on mount
-    window.addEventListener("resize", resizeHandler);
-    return () => window.removeEventListener("resize", resizeHandler);
-  }, []); // ✅ Fix: run only once
+  // Debounced resize handler for better performance
+  useDebouncedResize(() => {
+    setSplitText();
+  }, 150);
 
   return (
     <div className="container-main">
