@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollTrigger } from "gsap/all";
 import { setCharTimeline, setAllTimeline } from "../../utils/GsapScroll";
 
 export default function handleResize(
