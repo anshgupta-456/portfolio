@@ -1,56 +1,83 @@
 import { useEffect, useRef } from "react";
 import "./styles/WhatIDo.css";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 
-const Achievements = () => {
-  const containerRef = useRef<(HTMLDivElement | null)[]>([]);
+gsap.registerPlugin(ScrollTrigger);
 
-  const setRef = (el: HTMLDivElement | null, index: number) => {
-    containerRef.current[index] = el;
+type CardRefs = {
+  container: HTMLDivElement | null;
+  inner: HTMLDivElement | null;
+};
+
+const Achievements = () => {
+  const cardsRef = useRef<CardRefs[]>([]);
+
+  const setContainerRef = (el: HTMLDivElement | null, index: number) => {
+    if (!cardsRef.current[index]) cardsRef.current[index] = { container: null, inner: null };
+    cardsRef.current[index].container = el;
+  };
+  const setInnerRef = (el: HTMLDivElement | null, index: number) => {
+    if (!cardsRef.current[index]) cardsRef.current[index] = { container: null, inner: null };
+    cardsRef.current[index].inner = el;
   };
 
-  // Helpers to activate/deactivate one card and mark siblings
+  const setExpandedHeight = (index: number) => {
+    const inner = cardsRef.current[index]?.inner;
+    const container = cardsRef.current[index]?.container;
+    if (!inner || !container) return;
+    // measure actual content height
+    const h = inner.scrollHeight;
+    container.style.setProperty("--expanded-height", `${h}px`);
+  };
+
   const activate = (index: number) => {
-    const target = containerRef.current[index];
-    if (!target || !target.parentElement) return;
-    for (const el of Array.from(target.parentElement.children)) {
+    const container = cardsRef.current[index]?.container;
+    if (!container) return;
+    // measure before activating so the transition knows the target height
+    setExpandedHeight(index);
+    // clear others + set siblings
+    const parent = container.parentElement;
+    if (!parent) return;
+    Array.from(parent.children).forEach((el) => {
       el.classList.remove("what-content-active", "what-sibling");
-    }
-    target.classList.add("what-content-active");
-    for (const el of Array.from(target.parentElement.children)) {
-      if (el !== target) el.classList.add("what-sibling");
-    }
+    });
+    container.classList.add("what-content-active");
+    Array.from(parent.children).forEach((el) => {
+      if (el !== container) el.classList.add("what-sibling");
+    });
   };
 
   const deactivateAll = (index?: number) => {
-    const parent = index != null ? containerRef.current[index]?.parentElement : containerRef.current[0]?.parentElement;
+    const parent =
+      index != null
+        ? cardsRef.current[index]?.container?.parentElement
+        : cardsRef.current[0]?.container?.parentElement;
     if (!parent) return;
-    for (const el of Array.from(parent.children)) {
+    Array.from(parent.children).forEach((el) => {
       el.classList.remove("what-content-active", "what-sibling");
-    }
+      // optional: clear expanded height
+      (el as HTMLElement).style.removeProperty("--expanded-height");
+    });
   };
 
   useEffect(() => {
-    // TOUCH: tap to toggle the active state (no hover on touch)
+    // TOUCH: tap to toggle; DESKTOP: hover handled via props below
     if (ScrollTrigger.isTouch) {
-      const clickHandlers: Array<{ el: HTMLDivElement; fn: (e: Event) => void }> = [];
-
-      containerRef.current.forEach((el, i) => {
+      const handlers: Array<{ el: HTMLDivElement; fn: () => void }> = [];
+      cardsRef.current.forEach((refs, i) => {
+        const el = refs.container;
         if (!el) return;
         el.classList.remove("what-noTouch");
         const fn = () => {
-          // toggle current, clear siblings
           const isActive = el.classList.contains("what-content-active");
           deactivateAll(i);
           if (!isActive) activate(i);
         };
         el.addEventListener("click", fn);
-        clickHandlers.push({ el, fn });
+        handlers.push({ el, fn });
       });
-
-      return () => {
-        clickHandlers.forEach(({ el, fn }) => el.removeEventListener("click", fn));
-      };
+      return () => handlers.forEach(({ el, fn }) => el.removeEventListener("click", fn));
     }
   }, []);
 
@@ -67,7 +94,6 @@ const Achievements = () => {
 
       <div className="what-box">
         <div className="what-box-in">
-          {/* borders kept as-is */}
           <div className="what-border2">
             <svg width="100%">
               <line x1="0" y1="0" x2="0" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="7,7" />
@@ -75,16 +101,15 @@ const Achievements = () => {
             </svg>
           </div>
 
-          {/* --- First Achievement --- */}
+          {/* 1 */}
           <div
             className="what-content what-noTouch"
-            ref={(el) => setRef(el, 0)}
-            // DESKTOP: show content on hover/focus
+            ref={(el) => setContainerRef(el, 0)}
             onMouseEnter={() => !ScrollTrigger.isTouch && activate(0)}
-            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(0)}
             onFocus={() => !ScrollTrigger.isTouch && activate(0)}
+            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(0)}
             onBlur={() => !ScrollTrigger.isTouch && deactivateAll(0)}
-            tabIndex={0} // keyboard focusable for accessibility
+            tabIndex={0}
           >
             <div className="what-border1">
               <svg height="100%">
@@ -94,12 +119,12 @@ const Achievements = () => {
             </div>
             <div className="what-corner"></div>
 
-            <div className="what-content-in">
+            <div className="what-content-in" ref={(el) => setInnerRef(el, 0)}>
               <h3>Hackathon Wins</h3>
               <h4>Innovation & Coding Excellence</h4>
-              <p>
-                Secured top positions in multiple national-level hackathons and innovation challenges.
-                Recognized for creative problem-solving, technical depth, and teamwork.
+              <p className="what-preview">
+                Secured top positions in multiple national-level hackathons and innovation challenges. Recognized for
+                creative problem-solving, technical depth, and teamwork.
               </p>
               <h5>Highlights</h5>
               <div className="what-content-flex">
@@ -112,13 +137,13 @@ const Achievements = () => {
             </div>
           </div>
 
-          {/* --- Second Achievement --- */}
+          {/* 2 */}
           <div
             className="what-content what-noTouch"
-            ref={(el) => setRef(el, 1)}
+            ref={(el) => setContainerRef(el, 1)}
             onMouseEnter={() => !ScrollTrigger.isTouch && activate(1)}
-            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(1)}
             onFocus={() => !ScrollTrigger.isTouch && activate(1)}
+            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(1)}
             onBlur={() => !ScrollTrigger.isTouch && deactivateAll(1)}
             tabIndex={0}
           >
@@ -129,12 +154,12 @@ const Achievements = () => {
             </div>
             <div className="what-corner"></div>
 
-            <div className="what-content-in">
+            <div className="what-content-in" ref={(el) => setInnerRef(el, 1)}>
               <h3>Research & Certifications</h3>
               <h4>Academic and Technical Growth</h4>
-              <p>
-                Demonstrated strong research aptitude through contributions in AI and computational biology.
-                Gained certifications that strengthen technical and analytical skills.
+              <p className="what-preview">
+                Demonstrated strong research aptitude through contributions in AI and computational biology. Gained
+                certifications that strengthen technical and analytical skills.
               </p>
               <h5>Highlights</h5>
               <div className="what-content-flex">

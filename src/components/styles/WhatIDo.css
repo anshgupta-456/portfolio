@@ -397,3 +397,67 @@
     line-height: 6.8rem;
   }
 }
+/* --- ensure the column is visible --- */
+.what-box-in {
+  display: flex !important;
+  flex-direction: column;
+}
+
+/* ----------- PREVIEW (visible before hover/tap) ----------- */
+.what-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* show 2 lines in collapsed state */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Show full paragraph when expanded */
+.what-content.what-content-active .what-preview,
+.what-content:hover .what-preview,
+.what-content:focus-within .what-preview {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+/* ----------- SMOOTH HEIGHT TRANSITION ----------- */
+/* Remove the old flicker animation & clipping */
+.what-content .what-content-in {
+  animation: none !important;
+  opacity: 1;                 /* keep content visible; preview handles truncation */
+  overflow: hidden;
+  max-height: var(--collapsed-height, 110px); /* collapsed height (preview zone) */
+  transition: max-height 350ms ease;
+}
+
+/* Expand to measured height (set from TSX) */
+.what-content.what-content-active .what-content-in,
+.what-content:hover .what-content-in,
+.what-content:focus-within .what-content-in {
+  max-height: var(--expanded-height, 1200px);
+}
+
+/* Optional: tweak collapsed size per breakpoint */
+@media (max-width: 900px) {
+  .what-content .what-content-in {
+    --collapsed-height: 100px;
+  }
+}
+
+/* ----------- BOX GROWTH ACCORDING TO CONTENT ----------- */
+/* Drop rigid percentage heights so the box can grow naturally */
+.what-content {
+  height: auto;            /* allow natural growth */
+  min-height: 0;           /* let content control height */
+}
+
+/* Keep your padding/scale effects if you like */
+.what-noTouch:hover,
+.what-content-active {
+  /* you can keep padding changes or remove to avoid layout shift */
+}
+
+.what-content.what-sibling {
+  opacity: 0.6;
+  transform: scale(0.98);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
