@@ -1,8 +1,6 @@
-
 import "./styles/Work.css";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
-
 import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
 
@@ -13,61 +11,91 @@ const Work = () => {
   const flexRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    const box = document.getElementsByClassName("work-box");
-    const boxWidth = box[0]?.getBoundingClientRect().width || 0;
-    const boxCount = box.length;
-    const totalWidth = boxWidth * boxCount;
+    // Prevent mobile scroll jumps when address bar shows/hides
+    ScrollTrigger.config({ ignoreMobileResize: true });
 
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: () => `+=${totalWidth}`,
-        scrub: true,
-        pin: true,
-        pinType: !ScrollTrigger.isTouch ? "transform" : "fixed",
-        id: "work",
-      },
+    const mm = gsap.matchMedia();
+
+    /* -------------------------------------------
+       ✅ DESKTOP (≥ 1024px) — Pinned horizontal
+    -------------------------------------------- */
+    mm.add("(min-width: 1024px)", () => {
+      const getTotalWidth = () => {
+        const boxes = document.getElementsByClassName("work-box");
+        const w = boxes[0]?.getBoundingClientRect().width || 0;
+        return w * boxes.length;
+      };
+
+      const tl = gsap.timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: () => `+=${getTotalWidth()}`,
+          scrub: true,
+          pin: true,
+          pinSpacing: true,
+          pinType: !ScrollTrigger.isTouch ? "transform" : "fixed",
+          invalidateOnRefresh: true,
+          id: "work",
+        },
+      });
+
+      tl.to(flexRef.current, {
+        x: () => -(getTotalWidth() - window.innerWidth),
+      });
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
     });
 
-    timeline.to(flexRef.current, {
-      x: -totalWidth + window.innerWidth,
-      ease: "none",
+    /* -------------------------------------------
+       ✅ MOBILE / TABLET (< 1024px)
+       → No pinning, no transform, natural scroll
+    -------------------------------------------- */
+    mm.add("(max-width: 1023px)", () => {
+      gsap.set(flexRef.current, { clearProps: "transform" });
+      return () => {};
     });
+
+    return () => mm.revert();
   }, []);
 
   const projects = [
-  {
-    title: "PeerFit – AI-based Fitness Assistant",
-    category: "Computer Vision + Web",
-    tools: "Pose detection/classification, Python, Web UI",
-    desc: "Improved an AI-powered fitness assistant using pose detection and classification to provide real-time exercise feedback and posture correction. Added support for multiple exercises with clear, user-friendly feedback delivered through a web interface. (June 2025)"
-  },
-  {
-    title: "Air Quality Prediction (Research Paper Replication)",
-    category: "Machine Learning",
-    tools: "Python, EDA, Regression models",
-    desc: "Replicated a study predicting AQI across Indian cities. Performed data preprocessing and exploratory data analysis, trained/evaluated regression models, and visualized key pollution trends to assess generalization and robustness. (Jan–Apr 2025)"
-  },
-  {
-    title: "Grievance Management System",
-    category: "Full Stack + Speech",
-    tools: "Web app, Voice-to-Text (4 languages), Real-time tracking",
-    desc: "Enhanced a campus grievance portal where students lodge complaints via multilingual voice-to-text. Implemented real-time ticket tracking so users can monitor progress from submission to resolution. (Mar–Apr 2025)"
-  },
-  {
-    title: "Molecule Optimizer with ECFP6 & GROVER Fingerprints",
-    category: "ML for Drug Discovery",
-    tools: "ECFP6, GROVER, Hyperparameter tuning, Feature selection",
-    desc: "Built models to predict molecular activity and optimize compounds across 19 models using ECFP6 and GROVER fingerprints. Applied hyperparameter tuning and feature selection to improve predictive accuracy for protein/gene activity; leveraged MIMOSA and GenAI frameworks. (IIIT-Delhi, Jun–Aug 2025)"
-  },
-  {
-    title: "Protein–Protein Interaction ML Pipeline",
-    category: "Bioinformatics + ML",
-    tools: "Dataset curation, Preprocessing, Model training",
-    desc: "Curated and preprocessed multi-species PPI datasets (1M+ datapoints) to train robust ML models. Focused on data quality/integrity to boost downstream accuracy for interaction prediction. (IIIT-Delhi, Jun–Aug 2025)"
-  }
-];
+    {
+      title: "PeerFit – AI-based Fitness Assistant",
+      category: "Computer Vision + Web",
+      tools: "Pose detection/classification, Python, Web UI",
+      desc: "Improved an AI-powered fitness assistant using pose detection and classification to provide real-time exercise feedback and posture correction. Added multiple exercises and web-based feedback. (June 2025)"
+    },
+    {
+      title: "Air Quality Prediction (Research Paper Replication)",
+      category: "Machine Learning",
+      tools: "Python, EDA, Regression models",
+      desc: "Replicated an AQI prediction study. Performed EDA, trained regression models, visualized pollution trends, and validated generalization. (Jan–Apr 2025)"
+    },
+    {
+      title: "Grievance Management System",
+      category: "Full Stack + Speech",
+      tools: "Web app, Voice-to-Text (4 languages), Real-time tracking",
+      desc: "Enhanced a multilingual grievance portal with voice-to-text and real-time ticket tracking from submission to resolution. (Mar–Apr 2025)"
+    },
+    {
+      title: "Molecule Optimizer with ECFP6 & GROVER Fingerprints",
+      category: "ML for Drug Discovery",
+      tools: "ECFP6, GROVER, Hyperparameter tuning",
+      desc: "Optimized molecular activities across 19 ML models using ECFP6 and GROVER fingerprints. Applied MIMOSA + GenAI-based improvements. (IIIT-Delhi, Jun–Aug 2025)"
+    },
+    {
+      title: "Protein–Protein Interaction ML Pipeline",
+      category: "Bioinformatics + ML",
+      tools: "Dataset curation, Preprocessing, Model training",
+      desc: "Curated and preprocessed 1M+ PPI dataset entries to train robust PPI prediction models. Improved dataset quality and downstream accuracy. (IIIT-Delhi, Jun–Aug 2025)"
+    }
+  ];
+
   return (
     <>
       <div className="work-section" id="work" ref={sectionRef}>
@@ -75,6 +103,7 @@ const Work = () => {
           <h2>
             My <span>Work</span>
           </h2>
+
           <div className="work-flex" ref={flexRef}>
             {projects.map((project, index) => (
               <div className="work-box" key={index}>
@@ -86,8 +115,10 @@ const Work = () => {
                       <p>{project.category}</p>
                     </div>
                   </div>
+
                   <h4>Tools & Technologies</h4>
                   <p>{project.tools}</p>
+
                   <h4>Description</h4>
                   <p>{project.desc}</p>
                 </div>
@@ -97,8 +128,8 @@ const Work = () => {
         </div>
       </div>
 
-      {/* ✅ Spacer to prevent overlap with TechStack */}
-      <div style={{ height: "6vh" }}></div>
+      {/* Desktop spacer (hidden on mobile via CSS) */}
+      <div className="work-spacer"></div>
     </>
   );
 };
