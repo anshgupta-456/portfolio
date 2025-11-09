@@ -27,8 +27,7 @@ const Achievements = () => {
     container.style.setProperty("--expanded-height", `${inner.scrollHeight}px`);
   };
 
-  const hasActive = () =>
-    cardsRef.current.some(r => r.container?.classList.contains("what-content-active"));
+  
 
   const setSolo = (on: boolean) => {
     if (!wrapperRef.current) return;
