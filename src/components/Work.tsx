@@ -98,7 +98,7 @@ const Work = () => {
       </div>
 
       {/* ✅ Spacer to prevent overlap with TechStack */}
-      <div style={{ height: "10vh" }}></div>
+      <div style={{ height: "6vh" }}></div>
     </>
   );
 };
