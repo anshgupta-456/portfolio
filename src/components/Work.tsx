@@ -1,7 +1,8 @@
 
 import "./styles/Work.css";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollTrigger } from "gsap/all";
+
 import { useGSAP } from "@gsap/react";
 import { useRef } from "react";
 

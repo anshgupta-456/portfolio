@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import "./styles/WhatIDo.css"; // Keep same CSS, works perfectly
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollTrigger } from "gsap/all";
+
 
 const Achievements = () => {
   const containerRef = useRef<(HTMLDivElement | null)[]>([]);
