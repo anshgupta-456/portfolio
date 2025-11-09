@@ -1,30 +1,57 @@
 import { useEffect, useRef } from "react";
-import "./styles/WhatIDo.css"; // Keep same CSS, works perfectly
+import "./styles/WhatIDo.css";
 import { ScrollTrigger } from "gsap/all";
-
 
 const Achievements = () => {
   const containerRef = useRef<(HTMLDivElement | null)[]>([]);
+
   const setRef = (el: HTMLDivElement | null, index: number) => {
     containerRef.current[index] = el;
   };
 
-  useEffect(() => {
-    if (ScrollTrigger.isTouch) {
-      containerRef.current.forEach((container) => {
-        if (container) {
-          container.classList.remove("what-noTouch");
-          container.addEventListener("click", () => handleClick(container));
-        }
-      });
+  // Helpers to activate/deactivate one card and mark siblings
+  const activate = (index: number) => {
+    const target = containerRef.current[index];
+    if (!target || !target.parentElement) return;
+    for (const el of Array.from(target.parentElement.children)) {
+      el.classList.remove("what-content-active", "what-sibling");
     }
-    return () => {
-      containerRef.current.forEach((container) => {
-        if (container) {
-          container.removeEventListener("click", () => handleClick(container));
-        }
+    target.classList.add("what-content-active");
+    for (const el of Array.from(target.parentElement.children)) {
+      if (el !== target) el.classList.add("what-sibling");
+    }
+  };
+
+  const deactivateAll = (index?: number) => {
+    const parent = index != null ? containerRef.current[index]?.parentElement : containerRef.current[0]?.parentElement;
+    if (!parent) return;
+    for (const el of Array.from(parent.children)) {
+      el.classList.remove("what-content-active", "what-sibling");
+    }
+  };
+
+  useEffect(() => {
+    // TOUCH: tap to toggle the active state (no hover on touch)
+    if (ScrollTrigger.isTouch) {
+      const clickHandlers: Array<{ el: HTMLDivElement; fn: (e: Event) => void }> = [];
+
+      containerRef.current.forEach((el, i) => {
+        if (!el) return;
+        el.classList.remove("what-noTouch");
+        const fn = () => {
+          // toggle current, clear siblings
+          const isActive = el.classList.contains("what-content-active");
+          deactivateAll(i);
+          if (!isActive) activate(i);
+        };
+        el.addEventListener("click", fn);
+        clickHandlers.push({ el, fn });
       });
-    };
+
+      return () => {
+        clickHandlers.forEach(({ el, fn }) => el.removeEventListener("click", fn));
+      };
+    }
   }, []);
 
   return (
@@ -40,26 +67,11 @@ const Achievements = () => {
 
       <div className="what-box">
         <div className="what-box-in">
+          {/* borders kept as-is */}
           <div className="what-border2">
             <svg width="100%">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                stroke="white"
-                strokeWidth="2"
-                strokeDasharray="7,7"
-              />
-              <line
-                x1="100%"
-                y1="0"
-                x2="100%"
-                y2="100%"
-                stroke="white"
-                strokeWidth="2"
-                strokeDasharray="7,7"
-              />
+              <line x1="0" y1="0" x2="0" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="7,7" />
+              <line x1="100%" y1="0" x2="100%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="7,7" />
             </svg>
           </div>
 
@@ -67,30 +79,19 @@ const Achievements = () => {
           <div
             className="what-content what-noTouch"
             ref={(el) => setRef(el, 0)}
+            // DESKTOP: show content on hover/focus
+            onMouseEnter={() => !ScrollTrigger.isTouch && activate(0)}
+            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(0)}
+            onFocus={() => !ScrollTrigger.isTouch && activate(0)}
+            onBlur={() => !ScrollTrigger.isTouch && deactivateAll(0)}
+            tabIndex={0} // keyboard focusable for accessibility
           >
             <div className="what-border1">
               <svg height="100%">
-                <line
-                  x1="0"
-                  y1="0"
-                  x2="100%"
-                  y2="0"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeDasharray="6,6"
-                />
-                <line
-                  x1="0"
-                  y1="100%"
-                  x2="100%"
-                  y2="100%"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeDasharray="6,6"
-                />
+                <line x1="0" y1="0" x2="100%" y2="0" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
+                <line x1="0" y1="100%" x2="100%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
               </svg>
             </div>
-
             <div className="what-corner"></div>
 
             <div className="what-content-in">
@@ -115,18 +116,15 @@ const Achievements = () => {
           <div
             className="what-content what-noTouch"
             ref={(el) => setRef(el, 1)}
+            onMouseEnter={() => !ScrollTrigger.isTouch && activate(1)}
+            onMouseLeave={() => !ScrollTrigger.isTouch && deactivateAll(1)}
+            onFocus={() => !ScrollTrigger.isTouch && activate(1)}
+            onBlur={() => !ScrollTrigger.isTouch && deactivateAll(1)}
+            tabIndex={0}
           >
             <div className="what-border1">
               <svg height="100%">
-                <line
-                  x1="0"
-                  y1="100%"
-                  x2="100%"
-                  y2="100%"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeDasharray="6,6"
-                />
+                <line x1="0" y1="100%" x2="100%" y2="100%" stroke="white" strokeWidth="2" strokeDasharray="6,6" />
               </svg>
             </div>
             <div className="what-corner"></div>
@@ -155,17 +153,3 @@ const Achievements = () => {
 };
 
 export default Achievements;
-
-function handleClick(container: HTMLDivElement) {
-  container.classList.toggle("what-content-active");
-  container.classList.remove("what-sibling");
-  if (container.parentElement) {
-    const siblings = Array.from(container.parentElement.children);
-    siblings.forEach((sibling) => {
-      if (sibling !== container) {
-        sibling.classList.remove("what-content-active");
-        sibling.classList.toggle("what-sibling");
-      }
-    });
-  }
-}
